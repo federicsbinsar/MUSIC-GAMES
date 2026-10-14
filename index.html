@@ -1,377 +1,371 @@
 <!doctype html>
 <html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kuis Kamera Seni Musik</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
-<style>
-/* Layout: panggung layar penuh. Kamera di belakang, sisi A (kiri) dan sisi B (kanan) membagi layar. */
-:root{
-  --bg:#0c1d22;
-  --ink:#f5f0e4;
-  --muted:#a4babc;
-  --a:#f2b134;      /* sisi A: kuningan */
-  --b:#3fc1c9;      /* sisi B: toska */
-  --ok:#7bd88f;
-  --bad:#ff7a66;
-  --panel:rgba(9,22,26,.82);
-  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
-  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden}
-button{font:inherit;color:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-
-.stage{position:relative;height:100dvh;width:100%;overflow:hidden;
-  background:radial-gradient(120% 90% at 50% 0%,#17353b 0%,var(--bg) 70%)}
-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.55}
-
-.side{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;justify-content:center;
-  padding:150px 16px 240px;border:0;background:transparent;text-align:center;transition:background .3s}
-.side.a{left:0;background:linear-gradient(90deg,rgba(242,177,52,.22),rgba(242,177,52,.06))}
-.side.b{right:0;background:linear-gradient(270deg,rgba(63,193,201,.22),rgba(63,193,201,.06))}
-.side+.side{border-left:3px dashed rgba(245,240,228,.45)}
-.side .pick{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:92%}
-.letter{font-family:var(--display);font-weight:800;font-size:clamp(64px,13vw,190px);line-height:.9}
-.a .letter{color:var(--a)} .b .letter{color:var(--b)}
-.opt{font-size:clamp(18px,2.6vw,38px);font-weight:700;line-height:1.2;text-wrap:balance;
-  background:var(--panel);padding:10px 18px;border-radius:12px}
-.side.correct{background:linear-gradient(180deg,rgba(123,216,143,.38),rgba(123,216,143,.14))}
-.side.wrong{background:linear-gradient(180deg,rgba(255,122,102,.32),rgba(255,122,102,.1))}
-.side.correct .opt{outline:4px solid var(--ok)}
-.side.wrong .opt{outline:4px solid var(--bad)}
-.side .mark{font-family:var(--display);font-weight:800;font-size:clamp(20px,2.8vw,40px)}
-.side.correct .mark{color:var(--ok)} .side.wrong .mark{color:var(--bad)}
-
-.top{position:absolute;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 16px 0;
-  display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
-.progress{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
-.q{pointer-events:auto;max-width:min(1100px,96%);background:var(--panel);padding:16px 26px;border-radius:16px;
-  font-family:var(--display);font-weight:600;font-size:clamp(22px,3.4vw,50px);line-height:1.2;text-align:center;text-wrap:balance}
-
-.timer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(90px,13vw,170px);aspect-ratio:1;
-  border-radius:50%;background:var(--panel);display:grid;place-items:center;
-  font-family:var(--display);font-weight:800;font-size:clamp(40px,7vw,96px);
-  border:5px solid var(--ink)}
-.timer.low{border-color:var(--bad);color:var(--bad)}
-
-.explain{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(900px,94%);
-  background:var(--panel);border-radius:14px;padding:14px 20px;text-align:center;font-size:clamp(16px,1.9vw,26px);line-height:1.35}
-.explain strong{font-family:var(--display)}
-
-.meter{position:absolute;left:0;right:0;top:0;display:flex;gap:4px;pointer-events:none}
-.meter div{flex:1;height:8px;background:rgba(245,240,228,.14);border-radius:6px;overflow:hidden}
-.meter i{display:block;height:100%;width:0;transition:width .15s}
-.meter .ma i{background:var(--a);float:right} .meter .mb i{background:var(--b)}
-
-.bar{position:absolute;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-bottom));
-  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;background:linear-gradient(0deg,rgba(6,16,19,.9),rgba(6,16,19,0))}
-.btn{background:rgba(245,240,228,.12);border:1px solid rgba(245,240,228,.35);padding:10px 16px;border-radius:10px;font-weight:700;font-size:15px}
-.btn:hover{background:rgba(245,240,228,.22)}
-.btn.main{background:var(--a);color:#241a02;border-color:var(--a)}
-.btn.main:hover{background:#ffc552}
-.status{font-size:14px;color:var(--muted);flex-basis:100%;text-align:center;order:-1}
-
-.overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:20px;
-  background:radial-gradient(100% 80% at 50% 20%,rgba(23,53,59,.96),rgba(8,18,21,.98))}
-.card{max-width:720px;text-align:center;display:flex;flex-direction:column;gap:18px;align-items:center}
-.card h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,72px);line-height:1;margin:0;text-wrap:balance}
-.card p{margin:0;color:var(--muted);font-size:clamp(16px,2vw,22px);line-height:1.45;max-width:60ch}
-.card .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.legend{display:flex;gap:14px;font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,34px)}
-.legend span:first-child{color:var(--a)} .legend span:last-child{color:var(--b)}
-.big{font-family:var(--display);font-weight:800;font-size:clamp(56px,12vw,140px);color:var(--a);line-height:1}
-
-.settings{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:4}
-.gear{width:42px;height:42px;border-radius:50%;background:var(--panel);border:1px solid rgba(245,240,228,.35);font-size:20px}
-.panel{position:absolute;right:0;top:50px;width:260px;background:var(--panel);border:1px solid rgba(245,240,228,.3);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:14px}
-.panel label{display:flex;flex-direction:column;gap:4px}
-.panel input,.panel select{width:100%}
-@media (max-width:640px){
-  .side{padding-bottom:270px}
-  .explain{bottom:112px}
-  .timer{top:44%}
-}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-</head>
-<body>
-<main class="stage" id="stage">
-  <video id="video" playsinline muted></video>
-  <canvas id="cv" width="64" height="48" hidden></canvas>
-
-  <button class="side a" id="sideA" type="button" aria-label="Pilih A"><div class="pick"><span class="letter">A</span><span class="opt" id="optA"></span><span class="mark" id="markA"></span></div></button>
-  <button class="side b" id="sideB" type="button" aria-label="Pilih B"><div class="pick"><span class="letter">B</span><span class="opt" id="optB"></span><span class="mark" id="markB"></span></div></button>
-
-  <div class="top">
-    <div class="progress" id="progress"></div>
-    <div class="q" id="question"></div>
-  </div>
-
-  <div class="timer" id="timer" hidden>10</div>
-  <div class="explain" id="explain" hidden></div>
-
-  <div class="meter" aria-hidden="true" id="meter" hidden>
-    <div class="ma"><i id="meterA"></i></div>
-    <div class="mb"><i id="meterB"></i></div>
-  </div>
-
-  <div class="bar">
-    <div class="status" id="status"></div>
-    <button class="btn" id="prev" type="button">← Soal Sebelumnya</button>
-    <button class="btn main" id="go" type="button">Mulai Hitung Mundur</button>
-    <button class="btn" id="next" type="button">Soal Berikutnya →</button>
-    <button class="btn" id="recal" type="button" hidden>Kalibrasi Ulang</button>
-    <button class="btn" id="full" type="button">Layar Penuh</button>
-  </div>
-
-  <div class="settings">
-    <button class="gear" id="gear" type="button" aria-label="Pengaturan guru" aria-expanded="false">⚙</button>
-    <div class="panel" id="panel" hidden>
-      <strong>Panel Guru</strong>
-      <label>Waktu menjawab
-        <select id="secs"><option>5</option><option>10</option><option selected>15</option><option>20</option><option>30</option></select>
-      </label>
-      <label>Sensitivitas kamera
-        <input type="range" id="sens" min="0.5" max="2" step="0.1" value="1">
-      </label>
-      <button class="btn" id="restart" type="button">Ulangi dari Awal</button>
+ <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20261014-04-caa1adb","C":{"Abril Fatface":"YACgEZbkUVE,0","Albert Sans":"YAHO2HRfeh4,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo Black":"YACgEZulLoA,0","Archivo":"YAHO2-t-jNE,0","Arial":"YAGyDvJ_4Ts,0","Baloo 2":"YAHO2IcQUcM,0","Barlow Condensed":"YAFdJljEuFc,0","Barlow":"YAFdJsyuOPM,1","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Canva Sans":"YAFdJjTk5UU,1","Caveat":"YALBs2ploWQ,0","Cinzel":"YACgEeV8bIQ,0","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","Courier Prime":"YAD1aFjegN8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Figtree":"YAHO2b-mV7A,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAFdJpU7Kkk,0","Fredoka":"YACgEZml080,0","Georgia":"YAGzXkO0pEM,0","Hanken Grotesk":"YAHO2VB9G0I,0","Helvetica":"YAFcf7zkXN0,0","IBM Plex Mono":"YAFdJkmvhGI,0","IBM Plex Sans":"YAFdJgT0SHI,0","Impact":"YAFcfnjI7Vk,0","Instrument Sans":"YAHO2bKyaSQ,0","Instrument Serif":"YAHFeOnZNEk,0","Inter":"YAFdJvSyp_k,3","Italiana":"YAHO2Toik_w,0","Jacques Francois":"YAHO2a5g66Q,0","JetBrains Mono":"YAFdJksXcAk,0","Josefin Sans":"YAFdJjvw9Ps,0","Karla":"YAHO2V2NSXM,0","Lato":"YAFdJuFCnaw,0","Libre Baskerville":"YACgEUFdPdA,0","Libre Caslon Display":"YAHO2XhLmt0,0","Lobster":"YAD8SnSjSFI,0","Lora":"YACgEXvxf8Q,0","Manrope":"YAHO2b2feC4,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YAFdtQi73Xs,0","Noto Sans JP":"YAFdJiHXlcI,0","Noto Sans KR":"YAGsojZj-RQ,0","Nunito Sans":"YAFdtQJYB9w,1","Nunito":"YAFdJoNRMmU,1","Oleo Script":"YACgEQQ14jI,0","Oswald":"YACgEQY10lw,0","Outfit":"YAHO2nVlg14,0","Pacifico":"YADLjORQ1u4,0","Playfair Display":"YAFdJhem5V8,1","Plus Jakarta Sans":"YAHO2gdhi18,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Public Sans":"YAFdJj8NdaU,1","Quicksand":"YAFdJpYtCxE,1","Raleway":"YAFdJhmxbVQ,1","Roboto Slab":"YAFdJswIKAg,0","Rockwell":"YAFcfyVZnN0,0","Rye":"YACgEdQP21k,0","Sarabun":"YAFdJssSnME,0","Schibsted Grotesk":"YAHO2sWydRk,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Space Grotesk":"YAHO2sjPCSM,0","Space Mono":"YADW1-vpsoc,0","Spectral":"YAHO2rVUHIM,0","Times New Roman":"YAGzXW3gftg,0","Trebuchet MS":"YAFcfrglpVA,0","Ubuntu":"YACgERDU--Q,0","Verdana":"YAGzXTctYtQ,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0"}}');</script><script src="/_sdk/05db820ba1544614.telemetry_sdk.js" integrity="sha512-a7JzkQDDcioSXpM61nxTfeRW7PcxWQy5+BrhyeTFmQFsXJ+Gncm0y50u7fTA7qOPegFnRgqCfa0mGUOK1yjDWQ=="></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuis Kamera Seni Musik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&amp;family=Nunito+Sans:wght@400;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0c1d22;--ink:#f5f0e4;--muted:#a4babc;--a:#f2b134;--b:#3fc1c9;--ok:#7bd88f;--bad:#ff7a66;--panel:rgba(9,22,26,.82)}
+    *{box-sizing:border-box} [hidden]{display:none!important}
+    html,body{margin:0;width:100%}
+    body{font-family:"Nunito Sans",sans-serif;color:var(--ink);background:var(--bg)}
+    button,select{font:inherit} button{cursor:pointer}
+    button:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+    button:disabled{opacity:.4;cursor:not-allowed}
+    .stage{position:relative;width:100%;min-height:650px;min-height:max(650px,calc(100 * min(var(--vh,1vh),1vh)));overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#17353b 0%,#0c1d22 70%)}
+    .stage:before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0,transparent 79px,rgba(245,240,228,.025) 80px)}
+    .quiz-item{position:absolute;inset:0}
+    .side{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;justify-content:center;padding:150px 16px 225px;border:0;text-align:center;transition:filter .2s,background .2s;color:var(--ink)}
+    .side.a{left:0;background:linear-gradient(90deg,rgba(242,177,52,.22),rgba(242,177,52,.06))}
+    .side.b{right:0;background:linear-gradient(270deg,rgba(63,193,201,.22),rgba(63,193,201,.06));border-left:3px dashed rgba(245,240,228,.45)}
+    .side:hover:not(:disabled){filter:brightness(1.2)}
+    .pick{display:flex;flex-direction:column;align-items:center;gap:9px;max-width:100%}
+    .letter{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(64px,13vw,180px);line-height:.9}
+    .a .letter{color:var(--a)}.b .letter{color:var(--b)}
+    .opt{font-weight:700;font-size:clamp(17px,2.6vw,36px);line-height:1.2;text-wrap:balance;background:var(--panel);padding:10px 18px;border-radius:12px}
+    .side.correct{background:linear-gradient(180deg,rgba(123,216,143,.38),rgba(123,216,143,.14))}
+    .side.wrong{background:linear-gradient(180deg,rgba(255,122,102,.32),rgba(255,122,102,.1))}
+    .side.correct .opt{outline:4px solid var(--ok)}.side.wrong .opt{outline:4px solid var(--bad)}
+    .mark{font-family:"Bricolage Grotesque",sans-serif;font-size:clamp(15px,2vw,28px);font-weight:800}
+    .correct .mark{color:var(--ok)}.wrong .mark{color:var(--bad)}
+    .top{position:absolute;left:0;right:0;top:0;padding:20px 64px 0;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
+    .progress{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+    .q{max-width:1100px;width:100%;background:var(--panel);padding:16px 26px;border-radius:16px;font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:clamp(22px,3.4vw,48px);line-height:1.2;text-align:center;text-wrap:balance}
+    .timer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(90px,13vw,160px);aspect-ratio:1;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(40px,7vw,90px);border:5px solid var(--ink);pointer-events:none}
+    .timer.low{border-color:var(--bad);color:var(--bad)}
+    .explain{position:absolute;left:50%;bottom:105px;transform:translateX(-50%);width:min(900px,94%);background:var(--panel);border-radius:14px;padding:13px 20px;text-align:center;font-size:clamp(15px,1.8vw,24px);line-height:1.35}
+    .explain p{margin:3px 0}
+    .bar{position:absolute;left:0;right:0;bottom:0;padding:10px 16px max(10px,env(safe-area-inset-bottom));display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;background:linear-gradient(0deg,rgba(6,16,19,.97),rgba(6,16,19,0))}
+    .btn{background:rgba(245,240,228,.12);border:1px solid rgba(245,240,228,.35);color:var(--ink);padding:10px 16px;border-radius:10px;font-weight:700;font-size:15px}
+    .btn:hover:not(:disabled){background:rgba(245,240,228,.22)}
+    .btn.main{background:var(--a);color:#241a02;border-color:var(--a)}
+    .btn.main:hover:not(:disabled){background:#ffc552}
+    .status{font-size:14px;color:var(--muted);flex-basis:100%;text-align:center;order:-1}
+    .overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:20px;background:radial-gradient(100% 80% at 50% 20%,rgba(23,53,59,.97),rgba(8,18,21,.99))}
+    .card{max-width:720px;text-align:center;display:flex;flex-direction:column;gap:18px;align-items:center}
+    .card h1{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(34px,6vw,72px);line-height:1.08}
+    .card p{color:var(--muted);font-size:clamp(16px,2vw,22px);line-height:1.45;max-width:60ch}
+    .legend{display:flex;gap:24px;font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(20px,3vw,34px)}
+    .legend span:first-child{color:var(--a)}.legend span:last-child{color:var(--b)}
+    .big{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:clamp(56px,12vw,140px);color:var(--a);line-height:1}
+    .settings{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:4}
+    .gear{width:44px;height:44px;border-radius:50%;background:var(--panel);border:1px solid rgba(245,240,228,.35);color:var(--ink);font-size:20px}
+    .panel{position:absolute;right:0;top:52px;width:260px;background:#10282d;border:1px solid rgba(245,240,228,.3);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px;font-size:14px;box-shadow:0 16px 40px #0008}
+    .panel label{display:flex;flex-direction:column;gap:5px}.panel select{width:100%;color:#10282d;padding:8px;border-radius:6px}
+    @media(max-width:640px){.stage{min-height:690px}.side{padding:165px 7px 255px}.opt{padding:9px 7px}.top{padding:69px 12px 0}.timer{top:46%}.explain{bottom:145px}.bar .btn{font-size:12px;padding:8px 9px}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/570d53629f0b998d.data_sdk.js" type="text/javascript" integrity="sha512-JEN39+V+Nvv9ZZOVS8vNk1iA9ErZJHTdgOw9KzPuMiK7m0I+KPEr/wmTnCFIQVsDjCZgJWfGnFi1IQh2Io2qyA=="></script>
+  <script src="/_sdk/0b63fb8940df03d4.editing_sdk.js" type="text/javascript" integrity="sha512-fFkkekAA7XKU9UcNO+7a7lGi1SDVYUdIo1lpZS9YpfVovu1WAj3C/MEr/w8zt6Jwq6OKflaYkwf4eOUpMYGz9A=="></script>
+  <script src="/_sdk/f195026a424c1f85.resizing_sdk.js" type="text/javascript" integrity="sha512-8On4Z+AXh1abEzZJ9Dbn9wOvFg+k1LsAaAzKGQ7LlfgXajZ9xEmZaZ1QVzv0AWhCZtCsEpWSOG9DgLri06TS7A=="></script>
+ </head>
+ <body data-template-id="__page-root" class="w-full">
+  <main id="stage" class="stage">
+   <div id="questions">
+    <article class="quiz-item" data-correct="0"><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q1-a">Digoyangkan</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q1-b">Dipetik</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 1 / 15</span>
+      <h2 class="q canva-text" data-template-id="q1-question">Bagaimana cara memainkan angklung?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q1-explanation">Angklung dari Jawa Barat menghasilkan bunyi ketika tabung bambunya digoyangkan.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q2-a">Sumatera Barat</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q2-b">Nusa Tenggara Timur</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 2 / 15</span>
+      <h2 class="q canva-text" data-template-id="q2-question">Sasando berasal dari provinsi mana?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q2-explanation">Sasando adalah alat musik petik dari Pulau Rote, Nusa Tenggara Timur.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q3-a">Dipukul</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q3-b">Ditiup</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 3 / 15</span>
+      <h2 class="q canva-text" data-template-id="q3-question">Bagaimana cara memainkan kolintang?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q3-explanation">Bilah-bilah kayu kolintang dibunyikan dengan cara dipukul.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q4-a">Bali</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q4-b">Sulawesi Utara</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 4 / 15</span>
+      <h2 class="q canva-text" data-template-id="q4-question">Kolintang merupakan alat musik khas daerah mana?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q4-explanation">Kolintang dikenal sebagai alat musik tradisional masyarakat Minahasa, Sulawesi Utara.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q5-a">Dipukul</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q5-b">Digoyangkan</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 5 / 15</span>
+      <h2 class="q canva-text" data-template-id="q5-question">Bagaimana cara memainkan talempong?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q5-explanation">Talempong dari Sumatera Barat adalah alat musik logam yang dimainkan dengan dipukul.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q6-a">Papua</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q6-b">Jawa Barat</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 6 / 15</span>
+      <h2 class="q canva-text" data-template-id="q6-question">Angklung dikenal sebagai alat musik tradisional dari daerah mana?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q6-explanation">Angklung merupakan alat musik bambu yang erat dengan budaya Sunda di Jawa Barat.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q7-a">Dipetik</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q7-b">Dipukul</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 7 / 15</span>
+      <h2 class="q canva-text" data-template-id="q7-question">Senar pada sasando dibunyikan dengan cara apa?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q7-explanation">Sasando dimainkan dengan memetik senar-senar yang terpasang pada tubuh alat musiknya.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q8-a">Seruling</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q8-b">Tifa</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 8 / 15</span>
+      <h2 class="q canva-text" data-template-id="q8-question">Alat musik berbentuk gendang yang dikenal di Papua adalah...</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q8-explanation">Tifa adalah alat musik pukul berbentuk gendang yang dikenal di Papua dan Maluku.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q9-a">Digesek</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q9-b">Ditiup</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 9 / 15</span>
+      <h2 class="q canva-text" data-template-id="q9-question">Bagaimana cara memainkan rebab?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q9-explanation">Rebab adalah alat musik bersenar yang dimainkan dengan cara digesek.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q10-a">Kecapi</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q10-b">Saluang</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 10 / 15</span>
+      <h2 class="q canva-text" data-template-id="q10-question">Alat musik tiup tradisional Minangkabau bernama...</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q10-explanation">Saluang adalah alat musik tiup dari Minangkabau, Sumatera Barat.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q11-a">Bambu</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q11-b">Logam</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 11 / 15</span>
+      <h2 class="q canva-text" data-template-id="q11-question">Angklung umumnya dibuat dari bahan apa?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q11-explanation">Tabung-tabung angklung umumnya dibuat dari bambu.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q12-a">Dipetik</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q12-b">Ditiup</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 12 / 15</span>
+      <h2 class="q canva-text" data-template-id="q12-question">Bagaimana cara memainkan seruling bambu?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q12-explanation">Seruling menghasilkan bunyi dari aliran udara ketika ditiup.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q13-a">Dawai atau senar</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q13-b">Bilah logam</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 13 / 15</span>
+      <h2 class="q canva-text" data-template-id="q13-question">Bagian kecapi yang dipetik untuk menghasilkan nada adalah...</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q13-explanation">Kecapi menghasilkan nada melalui getaran dawai atau senarnya.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="1" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q14-a">Sasando</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q14-b">Gong</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 14 / 15</span>
+      <h2 class="q canva-text" data-template-id="q14-question">Dalam gamelan, alat musik logam besar yang dipukul adalah...</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q14-explanation">Gong dipukul dan kerap menjadi penanda akhir suatu bagian dalam permainan gamelan.</p>
+     </section>
+    </article>
+    <article class="quiz-item" data-correct="0" hidden><button class="side a" type="button" data-choice="0"><span class="pick"><span class="letter" aria-hidden="true">A</span><span class="opt canva-text" data-template-id="q15-a">Mengatur irama</span><span class="mark"></span></span></button> <button class="side b" type="button" data-choice="1"><span class="pick"><span class="letter" aria-hidden="true">B</span><span class="opt canva-text" data-template-id="q15-b">Ditiup untuk melodi</span><span class="mark"></span></span></button>
+     <header class="top">
+      <span class="progress">Soal 15 / 15</span>
+      <h2 class="q canva-text" data-template-id="q15-question">Apa peran kendang dalam permainan gamelan?</h2>
+     </header>
+     <section class="explain" hidden>
+      <p class="verdict"></p>
+      <p class="canva-text" data-template-id="q15-explanation">Kendang dimainkan dengan dipukul untuk membantu mengatur irama dan tempo gamelan.</p>
+     </section>
+    </article>
+   </div>
+   <div class="timer" id="timer" hidden aria-label="Sisa waktu"></div>
+   <footer class="bar">
+    <div class="status" id="status" role="status"></div><button class="btn canva-button" data-template-id="prev-button" id="prev" type="button">← Soal Sebelumnya</button> <button class="btn main canva-button" data-template-id="go-button" id="go" type="button">Mulai Hitung Mundur</button> <button class="btn canva-button" data-template-id="next-button" id="next" type="button">Soal Berikutnya →</button> <button class="btn canva-button" data-template-id="results-button" id="results" type="button" hidden>Lihat Hasil →</button> <button class="btn canva-button" data-template-id="full-button" id="full" type="button">Layar Penuh</button>
+   </footer>
+   <aside class="settings"><button class="gear" id="gear" type="button" aria-label="Pengaturan guru" aria-expanded="false" aria-controls="panel">⚙</button>
+    <div class="panel canva-panel" data-template-id="teacher-panel" id="panel" hidden><strong class="canva-text" data-template-id="panel-title">Panel Guru</strong> <label for="secs"><span class="canva-text" data-template-id="seconds-label">Waktu menjawab</span> <select id="secs"><option value="5">5 detik</option><option value="10">10 detik</option><option value="15" selected>15 detik</option><option value="20">20 detik</option><option value="30">30 detik</option></select> </label> <button class="btn canva-button" data-template-id="restart-button" id="restart" type="button">Ulangi dari Awal</button>
     </div>
-  </div>
-
-  <div class="overlay" id="intro">
+   </aside>
+   <section class="overlay" id="intro" aria-labelledby="intro-title">
     <div class="card">
-      <h1>Kuis Kamera Seni Musik</h1>
-      <div class="legend"><span>← A</span><span>B →</span></div>
-      <p>Murid memilih jawaban dengan berdiri di depan layar. Berdiri di sisi kiri untuk A, di sisi kanan untuk B. Kamera membaca sisi mana yang paling banyak ditempati murid saat waktu habis.</p>
-      <div class="row">
-        <button class="btn main" id="startCam" type="button">Aktifkan Kamera</button>
-        <button class="btn" id="startManual" type="button">Main Tanpa Kamera</button>
-      </div>
-      <p id="introNote" style="font-size:15px">Tanpa kamera, guru atau murid menyentuh sisi A atau B di layar.</p>
+     <h1 class="canva-text" data-template-id="intro-title" id="intro-title">Kuis Kamera Seni Musik</h1>
+     <div class="legend" aria-hidden="true">
+      <span>← A</span><span>B →</span>
+     </div>
+     <p class="canva-text" data-template-id="intro-description">15 soal tentang alat musik tradisional Indonesia. Sentuh sisi kiri untuk A atau sisi kanan untuk B; tombol A dan B pada keyboard juga dapat digunakan.</p><button class="btn main canva-button" data-template-id="start-button" id="start" type="button">Mulai Kuis</button>
+     <p class="canva-text" data-template-id="manual-note">Mode sentuh digunakan karena kamera tidak tersedia di Canva Code.</p>
     </div>
-  </div>
-
-  <div class="overlay" id="calib" hidden>
+   </section>
+   <section class="overlay" id="end" aria-labelledby="end-title" hidden>
     <div class="card">
-      <h1>Kalibrasi Latar</h1>
-      <p>Semua orang keluar dari area kamera. Kamera akan merekam latar kosong sebagai pembanding.</p>
-      <div class="big" id="calibCount">3</div>
-      <button class="btn main" id="calibStart" type="button">Mulai Kalibrasi</button>
+     <h1 class="canva-text" data-template-id="end-title" id="end-title">Kuis Selesai!</h1>
+     <div class="big" id="score"></div>
+     <p id="score-text"></p><button class="btn main canva-button" data-template-id="again-button" id="again" type="button">Mulai Ulang</button>
     </div>
-  </div>
+   </section>
+  </main>
+  <script>
+  const $ = id => document.getElementById(id);
+  const items = [...document.querySelectorAll(".quiz-item")];
+  const state = {index:0, phase:"intro", seconds:15, answers:Array(items.length).fill(null), interval:null};
+  const current = () => items[state.index];
 
-  <div class="overlay" id="end" hidden>
-    <div class="card">
-      <h1>Kuis Selesai!</h1>
-      <div class="big" id="score">0/10</div>
-      <p id="scoreText"></p>
-      <button class="btn main" id="again" type="button">Mulai Ulang</button>
-    </div>
-  </div>
-</main>
-
-<script>
-/* ===== DAFTAR SOAL: guru dapat mengubah isi di sini =====
-   a: [teks pilihan A, teks pilihan B]
-   c: indeks jawaban benar (0 = A, 1 = B)
-   e: penjelasan yang tampil setelah jawaban dibuka */
-const QUESTIONS = [
-  {q:"Angklung dimainkan dengan cara...", a:["Digoyangkan","Dipukul dengan stik"], c:0,
-   e:"Angklung dibunyikan dengan menggoyangkan tabung bambu sehingga bagian ujungnya berbenturan dan menghasilkan nada."},
-  {q:"Tempo dalam musik adalah...", a:["Keras lembutnya bunyi","Cepat lambatnya lagu"], c:1,
-   e:"Tempo menunjukkan cepat atau lambatnya sebuah lagu dimainkan. Keras lembutnya bunyi disebut dinamika."},
-  {q:"Alat musik berikut yang termasuk alat musik ritmis adalah...", a:["Pianika","Tamborin"], c:1,
-   e:"Tamborin menghasilkan pola ritme. Pianika menghasilkan nada sehingga termasuk alat musik melodis."},
-  {q:"Akor C mayor tersusun dari nada...", a:["C - E - G","C - D - F"], c:0,
-   e:"Akor C mayor terdiri dari nada C, E, dan G."},
-  {q:"Dinamika dalam musik berkaitan dengan...", a:["Tinggi rendahnya nada","Keras lembutnya bunyi"], c:1,
-   e:"Dinamika adalah tingkat keras dan lembutnya bunyi, misalnya piano (lembut) dan forte (keras)."},
-  {q:"Fungsi harmoni dalam sebuah lagu adalah...", a:["Mengiringi dan memperkaya melodi","Mengatur cepat lambatnya lagu"], c:0,
-   e:"Harmoni berupa akor yang mengiringi melodi sehingga lagu terdengar lebih kaya dan penuh."},
-  {q:"Permainan musik bersama oleh beberapa pemain dengan alat musik berbeda disebut...", a:["Solo","Ansambel"], c:1,
-   e:"Ansambel adalah penyajian musik bersama oleh beberapa pemain."},
-  {q:"Sasando berasal dari daerah...", a:["Nusa Tenggara Timur","Sumatera Barat"], c:0,
-   e:"Sasando adalah alat musik petik tradisional dari Pulau Rote, Nusa Tenggara Timur."},
-  {q:"Sikap penonton yang tepat saat pertunjukan musik adalah...", a:["Berbicara keras agar suasana ramai","Menyimak dan bertepuk tangan di akhir penampilan"], c:1,
-   e:"Menyimak dengan tenang dan memberi apresiasi di akhir adalah etika menonton yang baik."},
-  {q:"Kolintang berasal dari daerah...", a:["Sulawesi Utara","Kalimantan Timur"], c:0,
-   e:"Kolintang adalah alat musik pukul dari bilah kayu, berasal dari Minahasa, Sulawesi Utara."}
-];
-
-const $ = s => document.querySelector(s);
-const S = {i:0, phase:"intro", cam:false, secs:15, sens:1, L:0, R:0, buf:[], base:null,
-           tally:[], timer:null, left:0, calibrating:false};
-const video=$("#video"), cv=$("#cv"), ctx=cv.getContext("2d",{willReadFrequently:true});
-const W=cv.width, H=cv.height, HALF=W/2;
-
-function setStatus(t){ $("#status").textContent = t || ""; }
-
-function render(){
-  const it = QUESTIONS[S.i];
-  S.phase = "ready";
-  $("#progress").textContent = "Soal " + (S.i+1) + " / " + QUESTIONS.length;
-  $("#question").textContent = it.q;
-  $("#optA").textContent = it.a[0];
-  $("#optB").textContent = it.a[1];
-  for (const k of ["A","B"]) { $("#side"+k).classList.remove("correct","wrong"); $("#mark"+k).textContent=""; }
-  $("#timer").hidden = true; $("#explain").hidden = true;
-  $("#go").hidden = false; $("#go").textContent = "Mulai Hitung Mundur " + S.secs + " Detik";
-  $("#prev").disabled = S.i===0;
-  setStatus(S.cam ? "Murid siap di depan layar. Tekan Mulai Hitung Mundur." : "Mode tanpa kamera: sentuh sisi A atau B untuk menjawab.");
-}
-
-function startCountdown(){
-  if (S.phase!=="ready") return;
-  S.phase = "counting"; S.buf = [];
-  let left = S.secs; S.left = left;
-  const t = $("#timer"); t.hidden=false; t.textContent=left; t.classList.remove("low");
-  $("#go").hidden = true;
-  setStatus(S.cam ? "Berdiri di sisi pilihanmu!" : "Sentuh A atau B.");
-  S.timer = setInterval(()=>{
-    left--; t.textContent = Math.max(left,0); t.classList.toggle("low", left<=3);
-    if (left<=0) { clearInterval(S.timer); decide(); }
-  },1000);
-}
-
-function decide(){
-  const now = performance.now();
-  const recent = S.buf.filter(p => now-p.t < 1500);
-  if (!S.cam || recent.length===0) { reveal(null,null); return; }
-  const L = recent.reduce((a,p)=>a+p.L,0)/recent.length;
-  const R = recent.reduce((a,p)=>a+p.R,0)/recent.length;
-  const mx = Math.max(L,R), mn = Math.min(L,R);
-  if (mx < 0.04 || mx < mn*1.25) { reveal(null, mx<0.04?null:L/(L+R)); return; }
-  reveal(L>R?0:1, L/(L+R));
-}
-
-function reveal(picked, shareL){
-  clearInterval(S.timer);
-  if (S.phase==="reveal") return;
-  S.phase = "reveal";
-  const it = QUESTIONS[S.i];
-  $("#timer").hidden = true;
-  const right = ["A","B"][it.c];
-  $("#side"+right).classList.add("correct"); $("#mark"+right).textContent = "✓ Jawaban benar";
-  if (picked!==null && picked!==it.c){
-    const w = ["A","B"][picked];
-    $("#side"+w).classList.add("wrong"); $("#mark"+w).textContent = "✗ Pilihan kelas";
+  function stopTimer(){
+    clearInterval(state.interval);
+    state.interval = null;
   }
-  let info;
-  if (picked===null) info = shareL===null ? "Pilihan kelas belum terdeteksi." : "Pilihan kelas seimbang, belum ada mayoritas.";
-  else if (shareL===null) info = "Dijawab dengan sentuhan: " + ["A","B"][picked] + ".";
-  else { const pct = Math.round((picked===0?shareL:1-shareL)*100);
-         info = "Kelas memilih " + ["A","B"][picked] + " (" + pct + "% dari yang terdeteksi). "; }
-  const ok = picked===it.c;
-  S.tally[S.i] = ok;
-  const verdict = picked===null ? "" : (ok ? "<strong>Benar!</strong> " : "<strong>Belum tepat.</strong> ");
-  $("#explain").innerHTML = verdict + info + "<br>" + it.e;
-  $("#explain").hidden = false;
-  $("#go").hidden = true;
-  setStatus("Tekan Soal Berikutnya untuk lanjut.");
-  $("#next").textContent = S.i===QUESTIONS.length-1 ? "Lihat Hasil →" : "Soal Berikutnya →";
-}
-
-function go(delta){
-  clearInterval(S.timer);
-  const n = S.i+delta;
-  if (n<0) return;
-  if (n>=QUESTIONS.length){ finish(); return; }
-  S.i = n; $("#next").textContent = "Soal Berikutnya →"; render();
-}
-function finish(){
-  const n = S.tally.filter(Boolean).length;
-  $("#score").textContent = n + "/" + QUESTIONS.length;
-  $("#scoreText").textContent = S.cam
-    ? "Jawaban mayoritas kelas benar pada " + n + " dari " + QUESTIONS.length + " soal."
-    : "Jawaban yang dipilih benar pada " + n + " dari " + QUESTIONS.length + " soal.";
-  $("#end").hidden = false;
-}
-function restart(){
-  clearInterval(S.timer); S.i=0; S.tally=[]; $("#end").hidden=true; $("#panel").hidden=true;
-  $("#next").textContent="Soal Berikutnya →"; render();
-}
-
-/* ===== Kamera dan deteksi sisi ===== */
-async function startCamera(){
-  const note = $("#introNote");
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    note.textContent = "Peramban ini tidak mendukung kamera. Buka lewat https atau gunakan Main Tanpa Kamera."; return;
+  function showQuestion(){
+    stopTimer();
+    state.phase = "ready";
+    items.forEach((item,i) => {
+      item.hidden = i !== state.index;
+      item.querySelector(".explain").hidden = true;
+      item.querySelectorAll(".side").forEach(side => {
+        side.classList.remove("correct","wrong");
+        side.querySelector(".mark").textContent = "";
+      });
+    });
+    $("timer").hidden = true;
+    $("timer").classList.remove("low");
+    $("go").hidden = false;
+    $("prev").disabled = state.index === 0;
+    $("next").hidden = state.index === items.length - 1;
+    $("results").hidden = state.index !== items.length - 1;
+    $("status").textContent = "Pilih A atau B, atau mulai hitung mundur.";
   }
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}},audio:false});
-    video.srcObject = stream; await video.play();
-    S.cam = true; $("#intro").hidden = true; $("#recal").hidden = false;
-    $("#calib").hidden = false;
-    requestAnimationFrame(loop);
-  }catch(err){
-    note.textContent = "Kamera tidak bisa diakses. Pilih Izinkan pada peramban, atau gunakan Main Tanpa Kamera.";
+  function reveal(choice){
+    if(state.phase !== "ready" && state.phase !== "counting") return;
+    stopTimer();
+    state.phase = "reveal";
+    const item = current();
+    const correct = Number(item.dataset.correct);
+    state.answers[state.index] = choice === correct;
+    $("timer").hidden = true;
+    $("go").hidden = true;
+    const correctSide = item.querySelector(`.side[data-choice="${correct}"]`);
+    correctSide.classList.add("correct");
+    correctSide.querySelector(".mark").textContent = "✓ Jawaban benar";
+    if(choice !== null && choice !== correct){
+      const wrongSide = item.querySelector(`.side[data-choice="${choice}"]`);
+      wrongSide.classList.add("wrong");
+      wrongSide.querySelector(".mark").textContent = "✗ Pilihan kelas";
+    }
+    item.querySelector(".verdict").textContent = choice === null ? "Waktu habis. Belum ada jawaban." : choice === correct ? "Benar!" : "Belum tepat.";
+    item.querySelector(".explain").hidden = false;
+    $("status").textContent = state.index === items.length - 1 ? "Tekan Lihat Hasil untuk selesai." : "Tekan Soal Berikutnya untuk lanjut.";
   }
-}
-function startManual(){ S.cam=false; $("#intro").hidden=true; render(); }
-
-function gray(){
-  ctx.save(); ctx.scale(-1,1); ctx.drawImage(video,-W,0,W,H); ctx.restore();
-  const d = ctx.getImageData(0,0,W,H).data, g = new Float32Array(W*H);
-  for (let p=0,i=0;p<g.length;p++,i+=4) g[p]=d[i]*.3+d[i+1]*.59+d[i+2]*.11;
-  return g;
-}
-async function calibrate(){
-  if (S.calibrating) return; S.calibrating=true; S.base=null;
-  $("#calibStart").hidden = true;
-  for (let c=3;c>0;c--){ $("#calibCount").textContent=c; await new Promise(r=>setTimeout(r,1000)); }
-  $("#calibCount").textContent = "…";
-  const acc = new Float32Array(W*H); const N=12;
-  for (let k=0;k<N;k++){ const g=gray(); for (let p=0;p<acc.length;p++) acc[p]+=g[p]/N; await new Promise(r=>setTimeout(r,120)); }
-  S.base = acc; S.calibrating=false;
-  $("#calib").hidden=true; $("#calibStart").hidden=false; $("#calibCount").textContent="3";
-  $("#meter").hidden=false;
-  if (S.phase==="intro") render(); else setStatus("Kalibrasi selesai.");
-}
-
-let lastT = 0;
-function loop(ts){
-  requestAnimationFrame(loop);
-  if (!S.cam || !S.base || ts-lastT<80 || video.readyState<2) return;
-  lastT = ts;
-  const g = gray(), th = 34/S.sens; let l=0,r=0;
-  for (let y=0;y<H;y++) for (let x=0;x<W;x++){
-    const p=y*W+x; if (Math.abs(g[p]-S.base[p])>th){ if (x<HALF) l++; else r++; }
+  function countdown(){
+    if(state.phase !== "ready") return;
+    state.phase = "counting";
+    let left = state.seconds;
+    $("timer").textContent = left;
+    $("timer").hidden = false;
+    $("go").hidden = true;
+    $("status").textContent = "Sentuh A atau B sebelum waktu habis.";
+    state.interval = setInterval(() => {
+      left--;
+      $("timer").textContent = Math.max(left,0);
+      $("timer").classList.toggle("low",left <= 3);
+      if(left <= 0) reveal(null);
+    },1000);
   }
-  const tot = HALF*H; S.L = S.L*.5 + (l/tot)*.5; S.R = S.R*.5 + (r/tot)*.5;
-  $("#meterA").style.width = Math.min(100, S.L/.35*100)+"%";
-  $("#meterB").style.width = Math.min(100, S.R/.35*100)+"%";
-  if (S.phase==="counting"){ S.buf.push({t:performance.now(),L:S.L,R:S.R}); if (S.buf.length>60) S.buf.shift(); }
-}
+  function finish(){
+    if(state.phase === "intro" || state.phase === "end") return;
+    stopTimer();
+    state.phase = "end";
+    const correct = state.answers.filter(answer => answer === true).length;
+    $("score").textContent = `${correct}/${items.length}`;
+    $("score-text").textContent = `Jawaban yang dipilih benar pada ${correct} dari ${items.length} soal.`;
+    $("end").hidden = false;
+  }
+  function move(delta){
+    if(state.phase === "intro" || state.phase === "end") return;
+    const target = state.index + delta;
+    if(target < 0 || target >= items.length) return;
+    state.index = target;
+    showQuestion();
+  }
+  function restart(){
+    stopTimer();
+    state.index = 0;
+    state.answers.fill(null);
+    $("end").hidden = true;
+    $("intro").hidden = true;
+    $("panel").hidden = true;
+    $("gear").setAttribute("aria-expanded","false");
+    showQuestion();
+  }
 
-/* ===== Peristiwa ===== */
-$("#startCam").onclick = startCamera;
-$("#startManual").onclick = startManual;
-$("#calibStart").onclick = calibrate;
-$("#recal").onclick = ()=>{ $("#calib").hidden=false; };
-$("#go").onclick = startCountdown;
-$("#next").onclick = ()=>go(1);
-$("#prev").onclick = ()=>go(-1);
-$("#again").onclick = restart;
-$("#restart").onclick = restart;
-$("#sideA").onclick = ()=>{ if (S.phase==="ready"||S.phase==="counting") reveal(0,null); };
-$("#sideB").onclick = ()=>{ if (S.phase==="ready"||S.phase==="counting") reveal(1,null); };
-$("#gear").onclick = ()=>{ const p=$("#panel"); p.hidden=!p.hidden; $("#gear").setAttribute("aria-expanded", String(!p.hidden)); };
-$("#secs").onchange = e=>{ S.secs=+e.target.value; if (S.phase==="ready") $("#go").textContent="Mulai Hitung Mundur "+S.secs+" Detik"; };
-$("#sens").oninput = e=>{ S.sens=+e.target.value; };
-$("#full").onclick = ()=>{ try{ if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(e){} };
-document.addEventListener("keydown", e=>{
-  if (e.key==="ArrowRight") go(1); else if (e.key==="ArrowLeft") go(-1);
-  else if (e.key===" " && S.phase==="ready" && $("#intro").hidden && $("#calib").hidden){ e.preventDefault(); startCountdown(); }
-});
-
-$("#question").textContent = "";
+  $("questions").addEventListener("click",event => {
+    const side = event.target.closest(".side");
+    if(side && side.closest(".quiz-item") === current()) reveal(Number(side.dataset.choice));
+  });
+  $("start").addEventListener("click",() => { $("intro").hidden = true; showQuestion(); });
+  $("go").addEventListener("click",countdown);
+  $("prev").addEventListener("click",() => move(-1));
+  $("next").addEventListener("click",() => move(1));
+  $("results").addEventListener("click",finish);
+  $("again").addEventListener("click",restart);
+  $("restart").addEventListener("click",restart);
+  $("gear").addEventListener("click",() => {
+    $("panel").hidden = !$("panel").hidden;
+    $("gear").setAttribute("aria-expanded",String(!$("panel").hidden));
+  });
+  $("secs").addEventListener("change",event => { state.seconds = Number(event.target.value); });
+  $("full").addEventListener("click",async () => {
+    try{
+      if(document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    }catch(error){
+      $("status").textContent = "Layar penuh tidak tersedia di tampilan ini.";
+    }
+  });
+  document.addEventListener("keydown",event => {
+    if(!$("intro").hidden || !$("end").hidden || event.target.closest("button,select")) return;
+    if(event.key === "ArrowRight"){ event.preventDefault(); move(1); }
+    else if(event.key === "ArrowLeft"){ event.preventDefault(); move(-1); }
+    else if(event.key.toLowerCase() === "a") reveal(0);
+    else if(event.key.toLowerCase() === "b") reveal(1);
+    else if(event.key === " " && state.phase === "ready"){ event.preventDefault(); countdown(); }
+  });
 </script>
-</body>
+ </body>
 </html>
