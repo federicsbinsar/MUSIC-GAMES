@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kuis Kamera Seni Musik</title>
+<title>Kuis Kamera Alat Musik Tradisional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
@@ -147,7 +147,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transfor
 
   <div class="overlay" id="intro">
     <div class="card">
-      <h1>Kuis Kamera Seni Musik</h1>
+      <h1>Kuis Kamera Alat Musik Tradisional</h1>
       <div class="legend"><span>← A</span><span>B →</span></div>
       <p>Murid memilih jawaban dengan berdiri di depan layar. Berdiri di sisi kiri untuk A, di sisi kanan untuk B. Kamera membaca sisi mana yang paling banyak ditempati murid saat waktu habis.</p>
       <div class="row">
@@ -178,31 +178,31 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transfor
 </main>
 
 <script>
-/* ===== DAFTAR SOAL: guru dapat mengubah isi di sini =====
+/* ===== DAFTAR SOAL (Alat Musik Tradisional): guru dapat mengubah isi di sini =====
    a: [teks pilihan A, teks pilihan B]
    c: indeks jawaban benar (0 = A, 1 = B)
    e: penjelasan yang tampil setelah jawaban dibuka */
 const QUESTIONS = [
-  {q:"Angklung dimainkan dengan cara...", a:["Digoyangkan","Dipukul dengan stik"], c:0,
-   e:"Angklung dibunyikan dengan menggoyangkan tabung bambu sehingga bagian ujungnya berbenturan dan menghasilkan nada."},
-  {q:"Tempo dalam musik adalah...", a:["Keras lembutnya bunyi","Cepat lambatnya lagu"], c:1,
-   e:"Tempo menunjukkan cepat atau lambatnya sebuah lagu dimainkan. Keras lembutnya bunyi disebut dinamika."},
-  {q:"Alat musik berikut yang termasuk alat musik ritmis adalah...", a:["Pianika","Tamborin"], c:1,
-   e:"Tamborin menghasilkan pola ritme. Pianika menghasilkan nada sehingga termasuk alat musik melodis."},
-  {q:"Akor C mayor tersusun dari nada...", a:["C - E - G","C - D - F"], c:0,
-   e:"Akor C mayor terdiri dari nada C, E, dan G."},
-  {q:"Dinamika dalam musik berkaitan dengan...", a:["Tinggi rendahnya nada","Keras lembutnya bunyi"], c:1,
-   e:"Dinamika adalah tingkat keras dan lembutnya bunyi, misalnya piano (lembut) dan forte (keras)."},
-  {q:"Fungsi harmoni dalam sebuah lagu adalah...", a:["Mengiringi dan memperkaya melodi","Mengatur cepat lambatnya lagu"], c:0,
-   e:"Harmoni berupa akor yang mengiringi melodi sehingga lagu terdengar lebih kaya dan penuh."},
-  {q:"Permainan musik bersama oleh beberapa pemain dengan alat musik berbeda disebut...", a:["Solo","Ansambel"], c:1,
-   e:"Ansambel adalah penyajian musik bersama oleh beberapa pemain."},
-  {q:"Sasando berasal dari daerah...", a:["Nusa Tenggara Timur","Sumatera Barat"], c:0,
-   e:"Sasando adalah alat musik petik tradisional dari Pulau Rote, Nusa Tenggara Timur."},
-  {q:"Sikap penonton yang tepat saat pertunjukan musik adalah...", a:["Berbicara keras agar suasana ramai","Menyimak dan bertepuk tangan di akhir penampilan"], c:1,
-   e:"Menyimak dengan tenang dan memberi apresiasi di akhir adalah etika menonton yang baik."},
-  {q:"Kolintang berasal dari daerah...", a:["Sulawesi Utara","Kalimantan Timur"], c:0,
-   e:"Kolintang adalah alat musik pukul dari bilah kayu, berasal dari Minahasa, Sulawesi Utara."}
+  {q:"Angklung berasal dari Jawa Barat dan terbuat dari...", a:["Bambu","Logam"], c:0,
+   e:"Angklung terbuat dari tabung bambu yang dibunyikan dengan cara digoyangkan."},
+  {q:"Resonator sasando terbuat dari daun...", a:["Pisang","Lontar"], c:1,
+   e:"Sasando adalah alat musik petik dari Pulau Rote, Nusa Tenggara Timur, dengan wadah resonansi dari daun lontar."},
+  {q:"Kolintang berasal dari daerah...", a:["Sulawesi Utara","Papua"], c:0,
+   e:"Kolintang adalah alat musik pukul dari bilah kayu, berasal dari Minahasa, Sulawesi Utara."},
+  {q:"Kelompok alat musik tradisional yang terdiri dari gong, kendang, saron, dan bonang disebut...", a:["Talempong","Gamelan"], c:1,
+   e:"Gamelan adalah ansambel musik tradisional yang berkembang di Jawa, Bali, dan Sunda."},
+  {q:"Tifa berasal dari daerah...", a:["Maluku dan Papua","Jawa Barat"], c:0,
+   e:"Tifa adalah alat musik pukul berbentuk drum dengan membran dari kulit, berasal dari Maluku dan Papua."},
+  {q:"Sape, alat musik petik suku Dayak, berasal dari...", a:["Nusa Tenggara","Kalimantan"], c:1,
+   e:"Sape adalah alat musik petik tradisional suku Dayak di Kalimantan."},
+  {q:"Talempong berasal dari daerah...", a:["Sumatera Barat","Bali"], c:0,
+   e:"Talempong adalah alat musik pukul dari logam berbentuk gong kecil, berasal dari Minangkabau, Sumatera Barat."},
+  {q:"Alat musik tradisional yang dimainkan dengan cara ditiup adalah...", a:["Sasando","Suling"], c:1,
+   e:"Suling dimainkan dengan ditiup dan umumnya terbuat dari bambu. Sasando dimainkan dengan dipetik."},
+  {q:"Kendang dimainkan dengan cara...", a:["Ditabuh","Digesek"], c:0,
+   e:"Kendang adalah alat musik membran yang ditabuh dengan tangan. Dalam gamelan, kendang berperan mengatur irama."},
+  {q:"Rebab, salah satu alat musik dalam gamelan, dimainkan dengan cara...", a:["Ditiup","Digesek"], c:1,
+   e:"Rebab adalah alat musik gesek, dimainkan dengan menggesek dawainya menggunakan penggesek."}
 ];
 
 const $ = s => document.querySelector(s);
