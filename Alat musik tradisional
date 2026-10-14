@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kuis Kamera Alat Musik Tradisional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Nunito+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: panggung layar penuh. Kamera di belakang, sisi A (kiri) dan sisi B (kanan) membagi layar. */
+:root{
+  --bg:#0c1d22;
+  --ink:#f5f0e4;
+  --muted:#a4babc;
+  --a:#f2b134;      /* sisi A: kuningan */
+  --b:#3fc1c9;      /* sisi B: toska */
+  --ok:#7bd88f;
+  --bad:#ff7a66;
+  --panel:rgba(9,22,26,.82);
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.stage{position:relative;height:100dvh;width:100%;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,#17353b 0%,var(--bg) 70%)}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);opacity:.55}
+
+.side{position:absolute;top:0;bottom:0;width:50%;display:flex;align-items:center;justify-content:center;
+  padding:150px 16px 240px;border:0;background:transparent;text-align:center;transition:background .3s}
+.side.a{left:0;background:linear-gradient(90deg,rgba(242,177,52,.22),rgba(242,177,52,.06))}
+.side.b{right:0;background:linear-gradient(270deg,rgba(63,193,201,.22),rgba(63,193,201,.06))}
+.side+.side{border-left:3px dashed rgba(245,240,228,.45)}
+.side .pick{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:92%}
+.letter{font-family:var(--display);font-weight:800;font-size:clamp(64px,13vw,190px);line-height:.9}
+.a .letter{color:var(--a)} .b .letter{color:var(--b)}
+.opt{font-size:clamp(18px,2.6vw,38px);font-weight:700;line-height:1.2;text-wrap:balance;
+  background:var(--panel);padding:10px 18px;border-radius:12px}
+.side.correct{background:linear-gradient(180deg,rgba(123,216,143,.38),rgba(123,216,143,.14))}
+.side.wrong{background:linear-gradient(180deg,rgba(255,122,102,.32),rgba(255,122,102,.1))}
+.side.correct .opt{outline:4px solid var(--ok)}
+.side.wrong .opt{outline:4px solid var(--bad)}
+.side .mark{font-family:var(--display);font-weight:800;font-size:clamp(20px,2.8vw,40px)}
+.side.correct .mark{color:var(--ok)} .side.wrong .mark{color:var(--bad)}
+
+.top{position:absolute;left:0;right:0;top:0;padding:max(14px,env(safe-area-inset-top)) 16px 0;
+  display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
+.progress{font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.q{pointer-events:auto;max-width:min(1100px,96%);background:var(--panel);padding:16px 26px;border-radius:16px;
+  font-family:var(--display);font-weight:600;font-size:clamp(22px,3.4vw,50px);line-height:1.2;text-align:center;text-wrap:balance}
+
+.timer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:clamp(90px,13vw,170px);aspect-ratio:1;
+  border-radius:50%;background:var(--panel);display:grid;place-items:center;
+  font-family:var(--display);font-weight:800;font-size:clamp(40px,7vw,96px);
+  border:5px solid var(--ink)}
+.timer.low{border-color:var(--bad);color:var(--bad)}
+
+.explain{position:absolute;left:50%;bottom:92px;transform:translateX(-50%);width:min(900px,94%);
+  background:var(--panel);border-radius:14px;padding:14px 20px;text-align:center;font-size:clamp(16px,1.9vw,26px);line-height:1.35}
+.explain strong{font-family:var(--display)}
+
+.meter{position:absolute;left:0;right:0;top:0;display:flex;gap:4px;pointer-events:none}
+.meter div{flex:1;height:8px;background:rgba(245,240,228,.14);border-radius:6px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;transition:width .15s}
+.meter .ma i{background:var(--a);float:right} .meter .mb i{background:var(--b)}
+
+.bar{position:absolute;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-bottom));
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;background:linear-gradient(0deg,rgba(6,16,19,.9),rgba(6,16,19,0))}
+.btn{background:rgba(245,240,228,.12);border:1px solid rgba(245,240,228,.35);padding:10px 16px;border-radius:10px;font-weight:700;font-size:15px}
+.btn:hover{background:rgba(245,240,228,.22)}
+.btn.main{background:var(--a);color:#241a02;border-color:var(--a)}
+.btn.main:hover{background:#ffc552}
+.status{font-size:14px;color:var(--muted);flex-basis:100%;text-align:center;order:-1}
+
+.overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:20px;
+  background:radial-gradient(100% 80% at 50% 20%,rgba(23,53,59,.96),rgba(8,18,21,.98))}
+.card{max-width:720px;text-align:center;display:flex;flex-direction:column;gap:18px;align-items:center}
+.card h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,72px);line-height:1;margin:0;text-wrap:balance}
+.card p{margin:0;color:var(--muted);font-size:clamp(16px,2vw,22px);line-height:1.45;max-width:60ch}
+.card .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.legend{display:flex;gap:14px;font-family:var(--display);font-weight:800;font-size:clamp(20px,3vw,34px)}
+.legend span:first-child{color:var(--a)} .legend span:last-child{color:var(--b)}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(56px,12vw,140px);color:var(--a);line-height:1}
+
+.settings{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));z-index:4}
+.gear{width:42px;height:42px;border-radius:50%;background:var(--panel);border:1px solid rgba(245,240,228,.35);font-size:20px}
+.panel{position:absolute;right:0;top:50px;width:260px;background:var(--panel);border:1px solid rgba(245,240,228,.3);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.panel label{display:flex;flex-direction:column;gap:4px}
+.panel input,.panel select{width:100%}
+@media (max-width:640px){
+  .side{padding-bottom:270px}
+  .explain{bottom:112px}
+  .timer{top:44%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <video id="video" playsinline muted></video>
+  <canvas id="cv" width="64" height="48" hidden></canvas>
+
+  <button class="side a" id="sideA" type="button" aria-label="Pilih A"><div class="pick"><span class="letter">A</span><span class="opt" id="optA"></span><span class="mark" id="markA"></span></div></button>
+  <button class="side b" id="sideB" type="button" aria-label="Pilih B"><div class="pick"><span class="letter">B</span><span class="opt" id="optB"></span><span class="mark" id="markB"></span></div></button>
+
+  <div class="top">
+    <div class="progress" id="progress"></div>
+    <div class="q" id="question"></div>
+  </div>
+
+  <div class="timer" id="timer" hidden>10</div>
+  <div class="explain" id="explain" hidden></div>
+
+  <div class="meter" aria-hidden="true" id="meter" hidden>
+    <div class="ma"><i id="meterA"></i></div>
+    <div class="mb"><i id="meterB"></i></div>
+  </div>
+
+  <div class="bar">
+    <div class="status" id="status"></div>
+    <button class="btn" id="prev" type="button">← Soal Sebelumnya</button>
+    <button class="btn main" id="go" type="button">Mulai Hitung Mundur</button>
+    <button class="btn" id="next" type="button">Soal Berikutnya →</button>
+    <button class="btn" id="recal" type="button" hidden>Kalibrasi Ulang</button>
+    <button class="btn" id="full" type="button">Layar Penuh</button>
+  </div>
+
+  <div class="settings">
+    <button class="gear" id="gear" type="button" aria-label="Pengaturan guru" aria-expanded="false">⚙</button>
+    <div class="panel" id="panel" hidden>
+      <strong>Panel Guru</strong>
+      <label>Waktu menjawab
+        <select id="secs"><option>5</option><option>10</option><option selected>15</option><option>20</option><option>30</option></select>
+      </label>
+      <label>Sensitivitas kamera
+        <input type="range" id="sens" min="0.5" max="2" step="0.1" value="1">
+      </label>
+      <button class="btn" id="restart" type="button">Ulangi dari Awal</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="intro">
+    <div class="card">
+      <h1>Kuis Kamera Alat Musik Tradisional</h1>
+      <div class="legend"><span>← A</span><span>B →</span></div>
+      <p>Murid memilih jawaban dengan berdiri di depan layar. Berdiri di sisi kiri untuk A, di sisi kanan untuk B. Kamera membaca sisi mana yang paling banyak ditempati murid saat waktu habis.</p>
+      <div class="row">
+        <button class="btn main" id="startCam" type="button">Aktifkan Kamera</button>
+        <button class="btn" id="startManual" type="button">Main Tanpa Kamera</button>
+      </div>
+      <p id="introNote" style="font-size:15px">Tanpa kamera, guru atau murid menyentuh sisi A atau B di layar.</p>
+    </div>
+  </div>
+
+  <div class="overlay" id="calib" hidden>
+    <div class="card">
+      <h1>Kalibrasi Latar</h1>
+      <p>Semua orang keluar dari area kamera. Kamera akan merekam latar kosong sebagai pembanding.</p>
+      <div class="big" id="calibCount">3</div>
+      <button class="btn main" id="calibStart" type="button">Mulai Kalibrasi</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="end" hidden>
+    <div class="card">
+      <h1>Kuis Selesai!</h1>
+      <div class="big" id="score">0/10</div>
+      <p id="scoreText"></p>
+      <button class="btn main" id="again" type="button">Mulai Ulang</button>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ===== DAFTAR SOAL (Alat Musik Tradisional): guru dapat mengubah isi di sini =====
+   a: [teks pilihan A, teks pilihan B]
+   c: indeks jawaban benar (0 = A, 1 = B)
+   e: penjelasan yang tampil setelah jawaban dibuka */
+const QUESTIONS = [
+  {q:"Angklung berasal dari Jawa Barat dan terbuat dari...", a:["Bambu","Logam"], c:0,
+   e:"Angklung terbuat dari tabung bambu yang dibunyikan dengan cara digoyangkan."},
+  {q:"Resonator sasando terbuat dari daun...", a:["Pisang","Lontar"], c:1,
+   e:"Sasando adalah alat musik petik dari Pulau Rote, Nusa Tenggara Timur, dengan wadah resonansi dari daun lontar."},
+  {q:"Kolintang berasal dari daerah...", a:["Sulawesi Utara","Papua"], c:0,
+   e:"Kolintang adalah alat musik pukul dari bilah kayu, berasal dari Minahasa, Sulawesi Utara."},
+  {q:"Kelompok alat musik tradisional yang terdiri dari gong, kendang, saron, dan bonang disebut...", a:["Talempong","Gamelan"], c:1,
+   e:"Gamelan adalah ansambel musik tradisional yang berkembang di Jawa, Bali, dan Sunda."},
+  {q:"Tifa berasal dari daerah...", a:["Maluku dan Papua","Jawa Barat"], c:0,
+   e:"Tifa adalah alat musik pukul berbentuk drum dengan membran dari kulit, berasal dari Maluku dan Papua."},
+  {q:"Sape, alat musik petik suku Dayak, berasal dari...", a:["Nusa Tenggara","Kalimantan"], c:1,
+   e:"Sape adalah alat musik petik tradisional suku Dayak di Kalimantan."},
+  {q:"Talempong berasal dari daerah...", a:["Sumatera Barat","Bali"], c:0,
+   e:"Talempong adalah alat musik pukul dari logam berbentuk gong kecil, berasal dari Minangkabau, Sumatera Barat."},
+  {q:"Alat musik tradisional yang dimainkan dengan cara ditiup adalah...", a:["Sasando","Suling"], c:1,
+   e:"Suling dimainkan dengan ditiup dan umumnya terbuat dari bambu. Sasando dimainkan dengan dipetik."},
+  {q:"Kendang dimainkan dengan cara...", a:["Ditabuh","Digesek"], c:0,
+   e:"Kendang adalah alat musik membran yang ditabuh dengan tangan. Dalam gamelan, kendang berperan mengatur irama."},
+  {q:"Rebab, salah satu alat musik dalam gamelan, dimainkan dengan cara...", a:["Ditiup","Digesek"], c:1,
+   e:"Rebab adalah alat musik gesek, dimainkan dengan menggesek dawainya menggunakan penggesek."}
+];
+
+const $ = s => document.querySelector(s);
+const S = {i:0, phase:"intro", cam:false, secs:15, sens:1, L:0, R:0, buf:[], base:null,
+           tally:[], timer:null, left:0, calibrating:false};
+const video=$("#video"), cv=$("#cv"), ctx=cv.getContext("2d",{willReadFrequently:true});
+const W=cv.width, H=cv.height, HALF=W/2;
+
+function setStatus(t){ $("#status").textContent = t || ""; }
+
+function render(){
+  const it = QUESTIONS[S.i];
+  S.phase = "ready";
+  $("#progress").textContent = "Soal " + (S.i+1) + " / " + QUESTIONS.length;
+  $("#question").textContent = it.q;
+  $("#optA").textContent = it.a[0];
+  $("#optB").textContent = it.a[1];
+  for (const k of ["A","B"]) { $("#side"+k).classList.remove("correct","wrong"); $("#mark"+k).textContent=""; }
+  $("#timer").hidden = true; $("#explain").hidden = true;
+  $("#go").hidden = false; $("#go").textContent = "Mulai Hitung Mundur " + S.secs + " Detik";
+  $("#prev").disabled = S.i===0;
+  setStatus(S.cam ? "Murid siap di depan layar. Tekan Mulai Hitung Mundur." : "Mode tanpa kamera: sentuh sisi A atau B untuk menjawab.");
+}
+
+function startCountdown(){
+  if (S.phase!=="ready") return;
+  S.phase = "counting"; S.buf = [];
+  let left = S.secs; S.left = left;
+  const t = $("#timer"); t.hidden=false; t.textContent=left; t.classList.remove("low");
+  $("#go").hidden = true;
+  setStatus(S.cam ? "Berdiri di sisi pilihanmu!" : "Sentuh A atau B.");
+  S.timer = setInterval(()=>{
+    left--; t.textContent = Math.max(left,0); t.classList.toggle("low", left<=3);
+    if (left<=0) { clearInterval(S.timer); decide(); }
+  },1000);
+}
+
+function decide(){
+  const now = performance.now();
+  const recent = S.buf.filter(p => now-p.t < 1500);
+  if (!S.cam || recent.length===0) { reveal(null,null); return; }
+  const L = recent.reduce((a,p)=>a+p.L,0)/recent.length;
+  const R = recent.reduce((a,p)=>a+p.R,0)/recent.length;
+  const mx = Math.max(L,R), mn = Math.min(L,R);
+  if (mx < 0.04 || mx < mn*1.25) { reveal(null, mx<0.04?null:L/(L+R)); return; }
+  reveal(L>R?0:1, L/(L+R));
+}
+
+function reveal(picked, shareL){
+  clearInterval(S.timer);
+  if (S.phase==="reveal") return;
+  S.phase = "reveal";
+  const it = QUESTIONS[S.i];
+  $("#timer").hidden = true;
+  const right = ["A","B"][it.c];
+  $("#side"+right).classList.add("correct"); $("#mark"+right).textContent = "✓ Jawaban benar";
+  if (picked!==null && picked!==it.c){
+    const w = ["A","B"][picked];
+    $("#side"+w).classList.add("wrong"); $("#mark"+w).textContent = "✗ Pilihan kelas";
+  }
+  let info;
+  if (picked===null) info = shareL===null ? "Pilihan kelas belum terdeteksi." : "Pilihan kelas seimbang, belum ada mayoritas.";
+  else if (shareL===null) info = "Dijawab dengan sentuhan: " + ["A","B"][picked] + ".";
+  else { const pct = Math.round((picked===0?shareL:1-shareL)*100);
+         info = "Kelas memilih " + ["A","B"][picked] + " (" + pct + "% dari yang terdeteksi). "; }
+  const ok = picked===it.c;
+  S.tally[S.i] = ok;
+  const verdict = picked===null ? "" : (ok ? "<strong>Benar!</strong> " : "<strong>Belum tepat.</strong> ");
+  $("#explain").innerHTML = verdict + info + "<br>" + it.e;
+  $("#explain").hidden = false;
+  $("#go").hidden = true;
+  setStatus("Tekan Soal Berikutnya untuk lanjut.");
+  $("#next").textContent = S.i===QUESTIONS.length-1 ? "Lihat Hasil →" : "Soal Berikutnya →";
+}
+
+function go(delta){
+  clearInterval(S.timer);
+  const n = S.i+delta;
+  if (n<0) return;
+  if (n>=QUESTIONS.length){ finish(); return; }
+  S.i = n; $("#next").textContent = "Soal Berikutnya →"; render();
+}
+function finish(){
+  const n = S.tally.filter(Boolean).length;
+  $("#score").textContent = n + "/" + QUESTIONS.length;
+  $("#scoreText").textContent = S.cam
+    ? "Jawaban mayoritas kelas benar pada " + n + " dari " + QUESTIONS.length + " soal."
+    : "Jawaban yang dipilih benar pada " + n + " dari " + QUESTIONS.length + " soal.";
+  $("#end").hidden = false;
+}
+function restart(){
+  clearInterval(S.timer); S.i=0; S.tally=[]; $("#end").hidden=true; $("#panel").hidden=true;
+  $("#next").textContent="Soal Berikutnya →"; render();
+}
+
+/* ===== Kamera dan deteksi sisi ===== */
+async function startCamera(){
+  const note = $("#introNote");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    note.textContent = "Peramban ini tidak mendukung kamera. Buka lewat https atau gunakan Main Tanpa Kamera."; return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:480}},audio:false});
+    video.srcObject = stream; await video.play();
+    S.cam = true; $("#intro").hidden = true; $("#recal").hidden = false;
+    $("#calib").hidden = false;
+    requestAnimationFrame(loop);
+  }catch(err){
+    note.textContent = "Kamera tidak bisa diakses. Pilih Izinkan pada peramban, atau gunakan Main Tanpa Kamera.";
+  }
+}
+function startManual(){ S.cam=false; $("#intro").hidden=true; render(); }
+
+function gray(){
+  ctx.save(); ctx.scale(-1,1); ctx.drawImage(video,-W,0,W,H); ctx.restore();
+  const d = ctx.getImageData(0,0,W,H).data, g = new Float32Array(W*H);
+  for (let p=0,i=0;p<g.length;p++,i+=4) g[p]=d[i]*.3+d[i+1]*.59+d[i+2]*.11;
+  return g;
+}
+async function calibrate(){
+  if (S.calibrating) return; S.calibrating=true; S.base=null;
+  $("#calibStart").hidden = true;
+  for (let c=3;c>0;c--){ $("#calibCount").textContent=c; await new Promise(r=>setTimeout(r,1000)); }
+  $("#calibCount").textContent = "…";
+  const acc = new Float32Array(W*H); const N=12;
+  for (let k=0;k<N;k++){ const g=gray(); for (let p=0;p<acc.length;p++) acc[p]+=g[p]/N; await new Promise(r=>setTimeout(r,120)); }
+  S.base = acc; S.calibrating=false;
+  $("#calib").hidden=true; $("#calibStart").hidden=false; $("#calibCount").textContent="3";
+  $("#meter").hidden=false;
+  if (S.phase==="intro") render(); else setStatus("Kalibrasi selesai.");
+}
+
+let lastT = 0;
+function loop(ts){
+  requestAnimationFrame(loop);
+  if (!S.cam || !S.base || ts-lastT<80 || video.readyState<2) return;
+  lastT = ts;
+  const g = gray(), th = 34/S.sens; let l=0,r=0;
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++){
+    const p=y*W+x; if (Math.abs(g[p]-S.base[p])>th){ if (x<HALF) l++; else r++; }
+  }
+  const tot = HALF*H; S.L = S.L*.5 + (l/tot)*.5; S.R = S.R*.5 + (r/tot)*.5;
+  $("#meterA").style.width = Math.min(100, S.L/.35*100)+"%";
+  $("#meterB").style.width = Math.min(100, S.R/.35*100)+"%";
+  if (S.phase==="counting"){ S.buf.push({t:performance.now(),L:S.L,R:S.R}); if (S.buf.length>60) S.buf.shift(); }
+}
+
+/* ===== Peristiwa ===== */
+$("#startCam").onclick = startCamera;
+$("#startManual").onclick = startManual;
+$("#calibStart").onclick = calibrate;
+$("#recal").onclick = ()=>{ $("#calib").hidden=false; };
+$("#go").onclick = startCountdown;
+$("#next").onclick = ()=>go(1);
+$("#prev").onclick = ()=>go(-1);
+$("#again").onclick = restart;
+$("#restart").onclick = restart;
+$("#sideA").onclick = ()=>{ if (S.phase==="ready"||S.phase==="counting") reveal(0,null); };
+$("#sideB").onclick = ()=>{ if (S.phase==="ready"||S.phase==="counting") reveal(1,null); };
+$("#gear").onclick = ()=>{ const p=$("#panel"); p.hidden=!p.hidden; $("#gear").setAttribute("aria-expanded", String(!p.hidden)); };
+$("#secs").onchange = e=>{ S.secs=+e.target.value; if (S.phase==="ready") $("#go").textContent="Mulai Hitung Mundur "+S.secs+" Detik"; };
+$("#sens").oninput = e=>{ S.sens=+e.target.value; };
+$("#full").onclick = ()=>{ try{ if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(e){} };
+document.addEventListener("keydown", e=>{
+  if (e.key==="ArrowRight") go(1); else if (e.key==="ArrowLeft") go(-1);
+  else if (e.key===" " && S.phase==="ready" && $("#intro").hidden && $("#calib").hidden){ e.preventDefault(); startCountdown(); }
+});
+
+$("#question").textContent = "";
+</script>
+</body>
+</html>
